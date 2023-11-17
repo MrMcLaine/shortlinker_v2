@@ -1,0 +1,59 @@
+service: note-app
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  profile: shortlinker_v2
+  lambdaHashingVersion: 20201221
+  region: us-east-1
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "dynamodb:PutItem"
+        - "dynamodb:GetItem"
+        - "dynamodb:UpdateItem"
+        - "dynamodb:DeleteItem"
+        - "dynamodb:Query"
+        - "dynamodb:Scan"
+      Resource:
+        - Fn::GetAtt: [ NotesTable, Arn ]
+  environment:
+    NOTES_TABLE: ${self:custom.notesTableName}
+
+functions:
+  createNote:
+    handler: src/lambdas/createNote.handler
+    events:
+      - http:
+          path: notes
+          method: post
+          cors: true
+
+resources:
+  Resources:
+    NotesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.notesTableName}
+        AttributeDefinitions:
+          - AttributeName: noteId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: noteId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
+plugins:
+  - serverless-esbuild
+
+custom:
+  esbuild:
+    bundle: true
+    minify: false
+    sourcemap: true
+    exclude: [ 'aws-sdk' ]
+    target: 'node18'
+    define: { 'require.resolve': undefined }
+    platform: 'node'
+  notesTableName: NotesTable
