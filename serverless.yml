@@ -41,6 +41,8 @@ provider:
     JWT_SECRET: ${self:custom.JWT_SECRET}
 
 functions:
+  authorizer:
+    handler: src/lambdas/authorizer.handler
   createNote:
     handler: src/lambdas/createNote.handler
     events:
@@ -69,6 +71,11 @@ functions:
           path: links
           method: post
           cors: true
+          authorizer:
+            name: authorizer
+            type: TOKEN
+            identitySource: method.request.header.Authorization
+            resultTtlInSeconds: 3600
   linkDeactivation:
     handler: src/lambdas/linkDeactivation.handler
   getLinkFromShortUrl:

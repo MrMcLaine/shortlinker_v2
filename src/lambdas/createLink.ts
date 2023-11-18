@@ -8,8 +8,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     try {
         //TODO need update
         const currentDomain = event.headers.Host;
-        //TODO need update
-        const userId = 'tempUserId'
+        const userId = event.requestContext.authorizer?.principalId;
         const { originalUrl, expiryPeriod } = JSON.parse(event.body || '{}');
 
         if (!originalUrl) {
@@ -33,6 +32,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         }
     } catch (error) {
         console.error('Error:', error);
+
         return {
             statusCode: 500,
             body: JSON.stringify({ error: 'Could not create link' })
