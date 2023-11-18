@@ -18,6 +18,19 @@ provider:
         - "dynamodb:Scan"
       Resource:
         - Fn::GetAtt: [ NotesTable, Arn ]
+
+    - Effect: "Allow"
+      Action:
+        - "lambda:InvokeFunction"
+      Resource: "arn:aws:lambda:us-east-1:870642761716:function:note-app-dev-deleteNote"
+    - Effect: "Allow"
+      Action:
+        - "iam:PassRole"
+      Resource: "arn:aws:iam::870642761716:role/RemoveLambdaRole"
+    - Effect: "Allow"
+      Action:
+        - "scheduler:CreateSchedule"
+      Resource: "*"
   environment:
     NOTES_TABLE: ${self:custom.notesTableName}
 
@@ -27,6 +40,21 @@ functions:
     events:
       - http:
           path: notes
+          method: post
+          cors: true
+  deleteNote:
+    handler: src/lambdas/deleteNote.handler
+    events:
+      - http:
+          path: notes/{noteId}
+          method: delete
+          cors: true
+
+  createSchedule:
+    handler: src/lambdas/createSchedule.handler
+    events:
+      - http:
+          path: schedule
           method: post
           cors: true
 
@@ -43,6 +71,37 @@ resources:
           - AttributeName: noteId
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
+
+    RemoveLambdaRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: RemoveLambdaRole
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: "Allow"
+              Principal:
+                Service:
+                  - "lambda.amazonaws.com"
+                  - "events.amazonaws.com"
+                  - "scheduler.amazonaws.com"
+              Action:
+                - "sts:AssumeRole"
+        Policies:
+          - PolicyName: LambdaSchedulerFunction
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: "Allow"
+                  Action:
+                    - "scheduler:CreateSchedule"
+                  Resource: "*"
+                - Effect: "Allow"
+                  Action:
+                    - "lambda:InvokeFunction"
+                  Resource:
+                  - "arn:aws:lambda:us-east-1:870642761716:function:note-app-dev-deleteNote:*"
+                  - "arn:aws:lambda:us-east-1:870642761716:function:note-app-dev-deleteNote"
 
 plugins:
   - serverless-esbuild
