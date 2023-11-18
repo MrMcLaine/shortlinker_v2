@@ -4,7 +4,7 @@ import { ExpiryTerm } from "../contants/ExpiryTerm";
 import { ILink } from "../interfaces/ILink";
 import { validateLink } from "../validation/linkValidation";
 import { calculateExpiryDate } from "../utils/calculateExpiryDate";
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import { GetCommand, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import ddbDocClient from "../libs/db";
 
 class LinkService {
@@ -42,6 +42,30 @@ class LinkService {
         } catch (error) {
             throw error;
         }
+    }
+
+    async deactivateLink(linkId: string) {
+        const linkResult = await ddbDocClient.send(new GetCommand({
+            TableName: process.env.LINKS_TABLE!,
+            Key: { linkId }
+        }));
+
+        const link = linkResult.Item;
+
+        if (!link) {
+            throw new Error('Link not found');
+        }
+
+        await ddbDocClient.send(new UpdateCommand({
+            TableName: process.env.LINKS_TABLE!,
+            Key: { linkId },
+            UpdateExpression: 'set isActive = :val',
+            ExpressionAttributeValues: {
+                ':val': false
+            }
+        }));
+
+        //TODO SQS email notification
     }
 }
 

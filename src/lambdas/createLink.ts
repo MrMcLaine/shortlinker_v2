@@ -1,5 +1,7 @@
 import { APIGatewayProxyHandler } from "aws-lambda";
 import { linkService } from "../services/linkService";
+import { ExpiryTerm } from "../contants/ExpiryTerm";
+import { createOneTimeSchedule } from "../utils/createOneTimeSchedule";
 
 
 export const handler: APIGatewayProxyHandler = async (event) => {
@@ -19,6 +21,11 @@ export const handler: APIGatewayProxyHandler = async (event) => {
 
         const newLink  = await linkService.createLink(userId, originalUrl, expiryPeriod);
         const fullShortUrl = `https://${currentDomain}/dev/${newLink.shortUrl}`;
+
+        if (expiryPeriod !== ExpiryTerm.ONCE) {
+            const expirationDateTime = newLink.expiredAt;
+            await createOneTimeSchedule(newLink.linkId, expirationDateTime);
+        }
 
         return {
             statusCode: 200,

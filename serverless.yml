@@ -65,6 +65,8 @@ functions:
           path: links
           method: post
           cors: true
+  linkDeactivation:
+    handler: src/lambdas/linkDeactivation.handler
 
 resources:
   Resources:
@@ -122,6 +124,8 @@ resources:
                   Resource:
                   - "arn:aws:lambda:us-east-1:870642761716:function:note-app-dev-deleteNote:*"
                   - "arn:aws:lambda:us-east-1:870642761716:function:note-app-dev-deleteNote"
+                  - "arn:aws:lambda:us-east-1:870642761716:function:note-app-dev-linkDeactivation:*"
+                  - "arn:aws:lambda:us-east-1:870642761716:function:note-app-dev-linkDeactivation"
 
 plugins:
   - serverless-esbuild
