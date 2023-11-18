@@ -110,6 +110,27 @@ class LinkService {
 
         return null;
     }
+
+    async getLinksByUser(userId: string): Promise<ILink[]> {
+        const params = {
+            TableName: process.env.LINKS_TABLE!,
+            IndexName: 'UserIdIndex',
+            KeyConditionExpression: 'userId = :userId',
+            ExpressionAttributeValues: {
+                ':userId': userId,
+            },
+        };
+
+        try {
+            const result = await ddbDocClient.send(new QueryCommand(params));
+
+            return result.Items as ILink[];
+        } catch (error) {
+            console.error('Error fetching links by user:', error);
+            throw error;
+        }
+
+    }
 }
 
 export const linkService = new LinkService();

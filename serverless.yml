@@ -21,6 +21,7 @@ provider:
         - Fn::GetAtt: [ UsersTable, Arn ]
         - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.linksTableName}/index/ShortUrlIndex'
         - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.usersTableName}/index/EmailIndex'
+        - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.linksTableName}/index/UserIdIndex'
 
     - Effect: "Allow"
       Action:
@@ -96,6 +97,18 @@ functions:
       - http:
           path: login
           method: post
+  getLinksByUser:
+    handler: src/lambdas/getLinksByUser.handler
+    events:
+      - http:
+          path: links
+          method: get
+          cors: true
+          authorizer:
+            name: authorizer
+            type: TOKEN
+            identitySource: method.request.header.Authorization
+            resultTtlInSeconds: 3600
 
 resources:
   Resources:
@@ -120,6 +133,8 @@ resources:
             AttributeType: S
           - AttributeName: shortUrl
             AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
         KeySchema:
           - AttributeName: linkId
             KeyType: HASH
@@ -128,6 +143,12 @@ resources:
           - IndexName: ShortUrlIndex
             KeySchema:
               - AttributeName: shortUrl
+                KeyType: HASH
+            Projection:
+              ProjectionType: "ALL"
+          - IndexName: UserIdIndex
+            KeySchema:
+              - AttributeName: userId
                 KeyType: HASH
             Projection:
               ProjectionType: "ALL"
