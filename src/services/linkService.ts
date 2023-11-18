@@ -129,7 +129,25 @@ class LinkService {
             console.error('Error fetching links by user:', error);
             throw error;
         }
+    }
 
+    async deactivateLinkById(userId: string, linkId: string) {
+        const getLinkResult = await ddbDocClient.send(new GetCommand({
+            TableName: process.env.LINKS_TABLE!,
+            Key: { linkId }
+        }));
+
+        const link = getLinkResult.Item as ILink;
+
+        if (!link) {
+            throw new Error('Link not found');
+        }
+
+        if (link.userId !== userId) {
+            throw new Error('User is not authorized to deactivate this link');
+        }
+
+        await this.deactivateLink(linkId);
     }
 }
 

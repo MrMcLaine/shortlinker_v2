@@ -109,6 +109,17 @@ functions:
             type: TOKEN
             identitySource: method.request.header.Authorization
             resultTtlInSeconds: 3600
+  deactivateLink:
+    handler: src/lambdas/deactivateLink.handler
+    events:
+      - http:
+          path: links/{linkId}
+          method: delete
+          authorizer:
+            name: authorizer
+            type: TOKEN
+            identitySource: method.request.header.Authorization
+            resultTtlInSeconds: 3600
 
 resources:
   Resources:
