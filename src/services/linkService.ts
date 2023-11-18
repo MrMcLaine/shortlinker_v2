@@ -4,7 +4,12 @@ import { ExpiryTerm } from "../contants/ExpiryTerm";
 import { ILink } from "../interfaces/ILink";
 import { validateLink } from "../validation/linkValidation";
 import { calculateExpiryDate } from "../utils/calculateExpiryDate";
-import { GetCommand, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import {
+    GetCommand,
+    PutCommand,
+    QueryCommand,
+    UpdateCommand
+} from "@aws-sdk/lib-dynamodb";
 import ddbDocClient from "../libs/db";
 
 class LinkService {
@@ -66,6 +71,44 @@ class LinkService {
         }));
 
         //TODO SQS email notification
+    }
+
+    async getLinkFromShortUrl(shortUrl: string): Promise<string | null> {
+        const queryCommand = new QueryCommand({
+            TableName: process.env.LINKS_TABLE!,
+            IndexName: 'ShortUrlIndex',
+            KeyConditionExpression: 'shortUrl = :shortUrl',
+            ExpressionAttributeValues: {
+                ':shortUrl': shortUrl,
+            },
+        });
+
+        const result = await ddbDocClient.send(queryCommand);
+
+        if (!result.Items) {
+            return null;
+        }
+
+        if (result.Items.length > 0) {
+            const link: ILink = result.Items[0] as ILink;
+
+            await ddbDocClient.send(new UpdateCommand({
+                TableName: process.env.LINKS_TABLE!,
+                Key: { linkId: link.linkId },
+                UpdateExpression: 'set transitionCount = transitionCount + :val',
+                ExpressionAttributeValues: {
+                    ':val': 1
+                },
+            }));
+
+            if (link.isActive && link.isOneTimeUse) {
+                await this.deactivateLink(link.linkId);
+            }
+
+            return link.originalUrl;
+        }
+
+        return null;
     }
 }
 

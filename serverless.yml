@@ -19,6 +19,7 @@ provider:
       Resource:
         - Fn::GetAtt: [ NotesTable, Arn ]
         - Fn::GetAtt: [ LinksTable, Arn ]
+        - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.linksTableName}/index/ShortUrlIndex'
 
     - Effect: "Allow"
       Action:
@@ -67,6 +68,12 @@ functions:
           cors: true
   linkDeactivation:
     handler: src/lambdas/linkDeactivation.handler
+  getLinkFromShortUrl:
+    handler: src/lambdas/getLinkFromShortUrl.handler
+    events:
+      - http:
+          path: /{linkId}
+          method: get
 
 resources:
   Resources:
@@ -89,10 +96,19 @@ resources:
         AttributeDefinitions:
           - AttributeName: linkId
             AttributeType: S
+          - AttributeName: shortUrl
+            AttributeType: S
         KeySchema:
           - AttributeName: linkId
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
+        GlobalSecondaryIndexes:
+          - IndexName: ShortUrlIndex
+            KeySchema:
+              - AttributeName: shortUrl
+                KeyType: HASH
+            Projection:
+              ProjectionType: "ALL"
 
     RemoveLambdaRole:
       Type: AWS::IAM::Role
