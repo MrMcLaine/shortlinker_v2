@@ -105,7 +105,9 @@ class LinkService {
                 await this.deactivateLink(link.linkId);
             }
 
-            return link.originalUrl;
+            if (link.isActive) {
+                return link.originalUrl;
+            }
         }
 
         return null;
