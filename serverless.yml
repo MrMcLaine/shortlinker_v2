@@ -15,11 +15,12 @@ provider:
         - "dynamodb:UpdateItem"
         - "dynamodb:DeleteItem"
         - "dynamodb:Query"
-        - "dynamodb:Scan"
       Resource:
         - Fn::GetAtt: [ NotesTable, Arn ]
         - Fn::GetAtt: [ LinksTable, Arn ]
+        - Fn::GetAtt: [ UsersTable, Arn ]
         - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.linksTableName}/index/ShortUrlIndex'
+        - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.usersTableName}/index/EmailIndex'
 
     - Effect: "Allow"
       Action:
@@ -36,6 +37,8 @@ provider:
   environment:
     NOTES_TABLE: ${self:custom.notesTableName}
     LINKS_TABLE: ${self:custom.linksTableName}
+    USERS_TABLE: ${self:custom.usersTableName}
+    JWT_SECRET: ${self:custom.JWT_SECRET}
 
 functions:
   createNote:
@@ -74,6 +77,18 @@ functions:
       - http:
           path: /{linkId}
           method: get
+  register:
+    handler: src/lambdas/register.handler
+    events:
+      - http:
+          path: register
+          method: post
+  login:
+    handler: src/lambdas/login.handler
+    events:
+      - http:
+          path: login
+          method: post
 
 resources:
   Resources:
@@ -109,6 +124,29 @@ resources:
                 KeyType: HASH
             Projection:
               ProjectionType: "ALL"
+
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.usersTableName}
+        AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
+        GlobalSecondaryIndexes:
+          - IndexName: EmailIndex
+            KeySchema:
+              - AttributeName: email
+                KeyType: HASH
+            Projection:
+              ProjectionType: "ALL"
+
 
     RemoveLambdaRole:
       Type: AWS::IAM::Role
@@ -157,3 +195,5 @@ custom:
     platform: 'node'
   notesTableName: NotesTable
   linksTableName: ShortLinksTable
+  usersTableName: UsersLinksOwnerTable
+  JWT_SECRET: SECRET
