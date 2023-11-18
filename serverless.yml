@@ -18,6 +18,7 @@ provider:
         - "dynamodb:Scan"
       Resource:
         - Fn::GetAtt: [ NotesTable, Arn ]
+        - Fn::GetAtt: [ LinksTable, Arn ]
 
     - Effect: "Allow"
       Action:
@@ -33,6 +34,7 @@ provider:
       Resource: "*"
   environment:
     NOTES_TABLE: ${self:custom.notesTableName}
+    LINKS_TABLE: ${self:custom.linksTableName}
 
 functions:
   createNote:
@@ -49,12 +51,18 @@ functions:
           path: notes/{noteId}
           method: delete
           cors: true
-
   createSchedule:
     handler: src/lambdas/createSchedule.handler
     events:
       - http:
           path: schedule
+          method: post
+          cors: true
+  createLink:
+    handler: src/lambdas/createLink.handler
+    events:
+      - http:
+          path: links
           method: post
           cors: true
 
@@ -69,6 +77,18 @@ resources:
             AttributeType: S
         KeySchema:
           - AttributeName: noteId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
+    LinksTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.linksTableName}
+        AttributeDefinitions:
+          - AttributeName: linkId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: linkId
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
 
@@ -116,3 +136,4 @@ custom:
     define: { 'require.resolve': undefined }
     platform: 'node'
   notesTableName: NotesTable
+  linksTableName: ShortLinksTable
