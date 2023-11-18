@@ -36,6 +36,8 @@ provider:
         - "scheduler:CreateSchedule"
       Resource: "*"
   environment:
+    REGION: ${self:provider.region}
+    BASE_URL: !Sub "https://${ApiGatewayRestApi}.execute-api.${aws:region}.amazonaws.com/${sls:stage}"
     NOTES_TABLE: ${self:custom.notesTableName}
     LINKS_TABLE: ${self:custom.linksTableName}
     USERS_TABLE: ${self:custom.usersTableName}

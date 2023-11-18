@@ -6,8 +6,7 @@ import { createOneTimeSchedule } from "../utils/createOneTimeSchedule";
 
 export const handler: APIGatewayProxyHandler = async (event) => {
     try {
-        //TODO need update
-        const currentDomain = event.headers.Host;
+        const baseUrl = process.env.BASE_URL;
         const userId = event.requestContext.authorizer?.principalId;
         const { originalUrl, expiryPeriod } = JSON.parse(event.body || '{}');
 
@@ -19,7 +18,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         }
 
         const newLink  = await linkService.createLink(userId, originalUrl, expiryPeriod);
-        const fullShortUrl = `https://${currentDomain}/dev/${newLink.shortUrl}`;
+        const fullShortUrl = `${baseUrl}/${newLink.shortUrl}`;
 
         if (expiryPeriod !== ExpiryTerm.ONCE) {
             const expirationDateTime = newLink.expiredAt;
