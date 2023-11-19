@@ -63,20 +63,6 @@ provider:
 functions:
   authorizer:
     handler: src/lambdas/authorizer.handler
-  createNote:
-    handler: src/lambdas/createNote.handler
-    events:
-      - http:
-          path: notes
-          method: post
-          cors: true
-  deleteNote:
-    handler: src/lambdas/deleteNote.handler
-    events:
-      - http:
-          path: notes/{noteId}
-          method: delete
-          cors: true
   createSchedule:
     handler: src/lambdas/createSchedule.handler
     events:
