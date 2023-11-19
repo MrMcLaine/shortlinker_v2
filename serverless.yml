@@ -39,7 +39,7 @@ provider:
       Action:
         - "ses:SendEmail"
         - "ses:SendRawEmail"
-      Resource: "arn:aws:ses:${env:AWS_REGION}:${env:AWS_ACCOUNT_ID}:identity/lypovskyi@gmail.com"
+      Resource: "arn:aws:ses:${env:AWS_REGION}:${env:AWS_ACCOUNT_ID}:identity/*"
     - Effect: "Allow"
       Action:
         - "sqs:SendMessage"
