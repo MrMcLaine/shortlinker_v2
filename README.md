@@ -69,3 +69,5 @@ serverless deploy
 
 ## SwaggerHub documentation
 [here is link] (https://app.swaggerhub.com/apis/LipovskiyTeam/sls-linker_api/1.0.0).
+
+** You can choose expiryPeriod = TEST for the link to be active for 1 minute (for testing).
