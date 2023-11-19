@@ -35,6 +35,18 @@ provider:
       Action:
         - "scheduler:CreateSchedule"
       Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - "ses:SendEmail"
+        - "ses:SendRawEmail"
+      Resource: "arn:aws:ses:${env:AWS_REGION}:${env:AWS_ACCOUNT_ID}:identity/lypovskyi@gmail.com"
+    - Effect: "Allow"
+      Action:
+        - "sqs:SendMessage"
+        - "sqs:ReceiveMessage"
+      Resource:
+        - "arn:aws:sqs:${self:provider.region}:870642761716:ShortLinkDeactivationQueue"
+
   environment:
     REGION: ${self:provider.region}
     BASE_URL: !Sub "https://${ApiGatewayRestApi}.execute-api.${aws:region}.amazonaws.com/${sls:stage}"
@@ -42,6 +54,7 @@ provider:
     LINKS_TABLE: ${self:custom.linksTableName}
     USERS_TABLE: ${self:custom.usersTableName}
     JWT_SECRET: ${self:custom.JWT_SECRET}
+    LINK_DEACTIVATION_QUEUE_URL: !Ref ShortLinkDeactivationQueue
 
 functions:
   authorizer:
@@ -123,6 +136,15 @@ functions:
             identitySource: method.request.header.Authorization
             resultTtlInSeconds: 3600
 
+  sendEmailNotification:
+    handler: src/lambdas/sendEmailNotification.handler
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - ShortLinkDeactivationQueue
+              - Arn
+
 resources:
   Resources:
     NotesTable:
@@ -188,6 +210,10 @@ resources:
             Projection:
               ProjectionType: "ALL"
 
+    ShortLinkDeactivationQueue:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: ShortLinkDeactivationQueue
 
     RemoveLambdaRole:
       Type: AWS::IAM::Role

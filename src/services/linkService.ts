@@ -1,7 +1,7 @@
 import { v4 as uuid } from 'uuid';
 import shortid from 'shortid';
+import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 import { ExpiryTerm } from "../contants/ExpiryTerm";
-import { ILink } from "../interfaces/ILink";
 import { validateLink } from "../validation/linkValidation";
 import { calculateExpiryDate } from "../utils/calculateExpiryDate";
 import {
@@ -11,6 +11,10 @@ import {
     UpdateCommand
 } from "@aws-sdk/lib-dynamodb";
 import ddbDocClient from "../libs/db";
+import { ILink } from "../interfaces/ILink";
+import { IUser } from "../interfaces/IUser";
+
+const sqsClient = new SQSClient({ region: process.env.AWS_REGION } as any);
 
 class LinkService {
     async createLink(
@@ -55,7 +59,7 @@ class LinkService {
             Key: { linkId }
         }));
 
-        const link = linkResult.Item;
+        const link = linkResult.Item as ILink;
 
         if (!link) {
             throw new Error('Link not found');
@@ -70,7 +74,31 @@ class LinkService {
             }
         }));
 
-        //TODO SQS email notification
+        if (!link.deactivateLetter) {
+            const userResult = await ddbDocClient.send(new GetCommand({
+                TableName: process.env.USERS_TABLE!,
+                Key: { userId: link.userId }
+            }));
+
+            const user = userResult.Item as IUser;
+
+            if (!user) {
+                throw new Error('User not found');
+            }
+
+            const messageBody = {
+                linkId: link.linkId,
+                userEmail: user.email,
+                shortUrl: link.shortUrl
+            };
+
+            const sendMessageCommand = new SendMessageCommand({
+                QueueUrl: process.env.LINK_DEACTIVATION_QUEUE_URL,
+                MessageBody: JSON.stringify(messageBody)
+            });
+
+            await sqsClient.send(sendMessageCommand);
+        }
     }
 
     async getLinkFromShortUrl(shortUrl: string): Promise<string | null> {
