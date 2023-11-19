@@ -1,9 +1,10 @@
 import { PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { v4 as uuid } from 'uuid';
 import { comparePassword, createPasswordHash } from "../utils/passwordUtil";
-import { IUser } from '../interfaces/IUser';
 import { authService } from './AuthService';
 import ddbDocClient from "../libs/db";
+import { emailService } from "./emailService";
+import { IUser } from '../interfaces/IUser';
 
 class UserService {
     async register(email: string, password: string): Promise<{ userId: string; token: string }> {
@@ -26,6 +27,8 @@ class UserService {
 
         await ddbDocClient.send(new PutCommand(params));
         const token = authService.generateToken({ userId });
+
+        await emailService.verifyEmail(email);
 
         return { userId, token };
     }

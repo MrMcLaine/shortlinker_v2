@@ -46,6 +46,10 @@ provider:
         - "sqs:ReceiveMessage"
       Resource:
         - "arn:aws:sqs:${self:provider.region}:870642761716:ShortLinkDeactivationQueue"
+    - Effect: "Allow"
+      Action:
+        - "ses:VerifyEmailIdentity"
+      Resource: "*"
 
   environment:
     REGION: ${self:provider.region}

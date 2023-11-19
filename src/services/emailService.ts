@@ -1,4 +1,4 @@
-import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
+import { SESClient, SendEmailCommand, VerifyEmailIdentityCommand } from "@aws-sdk/client-ses";
 
 const sesRegion = process.env.AWS_REGION!;
 const sesClient = new SESClient({ region: sesRegion } as any);
@@ -25,6 +25,20 @@ class EmailService {
             console.log('Email sent to', to, 'response:', response);
         } catch (error) {
             console.error('Error sending email', error);
+            throw error;
+        }
+    }
+
+    async verifyEmail(email: string): Promise<void> {
+        const command = new VerifyEmailIdentityCommand({
+            EmailAddress: email,
+        });
+
+        try {
+            await sesClient.send(command);
+            console.log('Email verified:', email);
+        } catch (error) {
+            console.error('Error verifying email', error);
             throw error;
         }
     }
