@@ -27,7 +27,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
 
         return {
             statusCode: 200,
-            body: JSON.stringify({ fullShortUrl, linkId: newLink.linkId })
+            body: JSON.stringify({ shortUrl: fullShortUrl, expiredAt: newLink.expiredAt })
         }
     } catch (error) {
         console.error('Error:', error);

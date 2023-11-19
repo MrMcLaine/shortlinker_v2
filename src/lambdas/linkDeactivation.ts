@@ -7,6 +7,14 @@ interface LinkDeactivationEvent {
 export const handler = async (event: LinkDeactivationEvent) => {
     try {
         const { linkId } = event;
+
+        if (!linkId) {
+            return {
+                statusCode: 400,
+                body: 'Missing linkId',
+            };
+        }
+
         await linkService.deactivateLink(linkId);
 
         return {
