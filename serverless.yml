@@ -1,6 +1,12 @@
 service: note-app
 frameworkVersion: '3'
 
+plugins:
+  - serverless-esbuild
+  - serverless-dotenv-plugin
+
+useDotenv: true
+
 provider:
   name: aws
   runtime: nodejs18.x
@@ -26,11 +32,11 @@ provider:
     - Effect: "Allow"
       Action:
         - "lambda:InvokeFunction"
-      Resource: "arn:aws:lambda:us-east-1:870642761716:function:note-app-dev-deleteNote"
+      Resource: "arn:aws:lambda:${env:AWS_REGION}:${env:AWS_ACCOUNT_ID}:function:note-app-dev-deleteNote"
     - Effect: "Allow"
       Action:
         - "iam:PassRole"
-      Resource: "arn:aws:iam::870642761716:role/RemoveLambdaRole"
+      Resource: "arn:aws:iam::${env:AWS_ACCOUNT_ID}:role/RemoveLambdaRole"
     - Effect: "Allow"
       Action:
         - "scheduler:CreateSchedule"
@@ -45,7 +51,7 @@ provider:
         - "sqs:SendMessage"
         - "sqs:ReceiveMessage"
       Resource:
-        - "arn:aws:sqs:${self:provider.region}:870642761716:ShortLinkDeactivationQueue"
+        - "arn:aws:sqs:${self:provider.region}:${env:AWS_ACCOUNT_ID}:ShortLinkDeactivationQueue"
     - Effect: "Allow"
       Action:
         - "ses:VerifyEmailIdentity"
@@ -233,13 +239,10 @@ resources:
                   Action:
                     - "lambda:InvokeFunction"
                   Resource:
-                  - "arn:aws:lambda:us-east-1:870642761716:function:note-app-dev-deleteNote:*"
-                  - "arn:aws:lambda:us-east-1:870642761716:function:note-app-dev-deleteNote"
-                  - "arn:aws:lambda:us-east-1:870642761716:function:note-app-dev-linkDeactivation:*"
-                  - "arn:aws:lambda:us-east-1:870642761716:function:note-app-dev-linkDeactivation"
-
-plugins:
-  - serverless-esbuild
+                  - 'arn:aws:lambda:${env:AWS_REGION}:${env:AWS_ACCOUNT_ID}:function:note-app-dev-deleteNote:*'
+                  - 'arn:aws:lambda:${env:AWS_REGION}:${env:AWS_ACCOUNT_ID}:note-app-dev-deleteNote'
+                  - 'arn:aws:lambda:${env:AWS_REGION}:${env:AWS_ACCOUNT_ID}:note-app-dev-linkDeactivation:*'
+                  - 'arn:aws:lambda:${env:AWS_REGION}:${env:AWS_ACCOUNT_ID}:note-app-dev-linkDeactivation'
 
 custom:
   esbuild:
