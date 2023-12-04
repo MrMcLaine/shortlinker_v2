@@ -1,4 +1,4 @@
-# SLS-Linker
+# SLS-Linker(SWAGGER link in the buttom)
 
 SLS-Linker is a serverless application that enables users to register, log in, create short links, retrieve a list of their links, and deactivate links. It's built on AWS with a Node.js runtime, utilizing services like Lambda, DynamoDB, SES, and SQS.
 
@@ -66,8 +66,9 @@ Ensure you have AWS credentials configured and the Serverless Framework installe
 Deploy the application using the following command:
 ```bash
 serverless deploy
+```
 
 ## SwaggerHub documentation
-[here is link] (https://app.swaggerhub.com/apis/LipovskiyTeam/sls-linker_api/1.0.0).
+[here is link](https://app.swaggerhub.com/apis/LipovskiyTeam/sls-linker_api/1.0.0).
 
 ** You can choose expiryPeriod = TEST for the link to be active for 1 minute (for testing).
