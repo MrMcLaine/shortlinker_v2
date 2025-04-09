@@ -2,6 +2,12 @@
 
 SLS-Linker is a serverless application that enables users to register, log in, create short links, retrieve a list of their links, and deactivate links. It's built on AWS with a Node.js runtime, utilizing services like Lambda, DynamoDB, SES, and SQS.
 
+---
+## Architecture Diagram
+
+![Architecture Diagram](src/public/architecture-diagram.png)
+---
+
 ## Features
 
 - **User Registration**: Allows new users to register.
